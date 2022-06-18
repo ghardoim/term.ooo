@@ -26,25 +26,25 @@ class FindWord:
         url_search = f"https://www.dicio.com.br/palavras-{self.params.where}-{self.params.letter}-com-5-letras{self.ou}/"
 
         _words = BeautifulSoup(rq.get(url_search).text, "html.parser")
-        _words = _words.find(attrs= {"class": "card"}).find_all("p")[1].text.strip()
+        for p in _words.find(attrs= {"class": "card"}).find_all("p")[1:]:
 
-        self.__words = normalize("NFD", _words).encode("ascii", "ignore").decode("utf-8")
+            self.__words = normalize("NFD", p.text.strip()).encode("ascii", "ignore").decode("utf-8")
 
-        for _ in range(0, len(self.__words), 5):
-            _word = self.__words[_: _ + 5]
-            can_print = True if self.__not_contains(_word) else False
+            for _ in range(0, len(self.__words), 5):
+                _word = self.__words[_: _ + 5]
+                can_print = True if self.__not_contains(_word) else False
 
-            if can_print and self.params.contains:
-                can_print = True if self.__contains(_word) else False
+                if can_print and self.params.contains:
+                    can_print = True if self.__contains(_word) else False
 
-            if can_print and self.params.is_in:
-                can_print = True if self.__is_in(_word) else False
+                if can_print and self.params.is_in:
+                    can_print = True if self.__is_in(_word) else False
 
-            if can_print and self.params.not_in:
-                can_print = True if self.__not_in(_word) else False
+                if can_print and self.params.not_in:
+                    can_print = True if self.__not_in(_word) else False
 
-            if can_print:
-                print(_word)
+                if can_print:
+                    print(_word)
 
     def __contains(self, word:str) -> bool:
         for l in self.params.contains:
