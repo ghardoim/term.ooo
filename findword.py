@@ -10,12 +10,12 @@ class FindWord:
     def __run(self) -> None:
         parser = argparse.ArgumentParser(prog="find words with five letters", usage="%(prog)s")
 
-        parser.add_argument("--where", type=str, required=True)
-        parser.add_argument("--letter", type=str, required=True)
-        parser.add_argument("--not-contains", type=str, required=True)
-        parser.add_argument("--contains", type=str)
-        parser.add_argument("--is-in", type=str)
-        parser.add_argument("--not-in", type=str)
+        parser.add_argument("-w", "--where", type=str, required=True)
+        parser.add_argument("-l", "--letter", type=str, required=True)
+        parser.add_argument("-nc", "--not-contains", type=str, required=True)
+        parser.add_argument("-c", "--contains", type=str)
+        parser.add_argument("-i", "--is-in", type=str, action="append")
+        parser.add_argument("-ni", "--not-in", type=str, action="append")
 
         self.params = parser.parse_args()
         if not self.params.where in ["com", "comecam", "terminadas"]:
@@ -59,11 +59,17 @@ class FindWord:
         return True
 
     def __is_in(self, word:str) -> bool:
-        letter, position = self.params.is_in
-        return letter == word[int(position) - 1]
+        for param in self.params.is_in:
+            letter, position = param
+            if letter != word[int(position) - 1]:
+                return False
+        return True
 
     def __not_in(self, word:str) -> bool:
-        letter, position = self.params.not_in
-        return letter != word[int(position) - 1]
+        for param in self.params.not_in:
+            letter, position = param
+            if letter == word[int(position) - 1]:
+                return False
+        return True
 
 FindWord()
