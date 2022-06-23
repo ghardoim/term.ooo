@@ -4,72 +4,67 @@ import requests as rq
 import argparse
 
 class FindWord:
-    def __init__(self) -> None:
-        self.__run()
+    def __init__(self) -> None: self.__run()
 
     def __run(self) -> None:
         parser = argparse.ArgumentParser(prog="find words with five letters", usage="%(prog)s")
 
-        parser.add_argument("-w", "--where", type=str, required=True)
-        parser.add_argument("-l", "--letter", type=str, required=True)
-        parser.add_argument("-nc", "--not-contains", type=str, required=True)
-        parser.add_argument("-c", "--contains", type=str)
-        parser.add_argument("-i", "--is-in", type=str, action="append")
-        parser.add_argument("-ni", "--not-in", type=str, action="append")
+        parser.add_argument("--start", type=str)
+        parser.add_argument("--with_", type=str)
+        parser.add_argument("--end", type=str)
+        parser.add_argument("--has", type=str)
+        parser.add_argument("--not-has", type=str, required=True)
+        parser.add_argument("--is_", type=str, nargs="+")
+        parser.add_argument("--not-is", type=str, nargs="+", )
 
         self.params = parser.parse_args()
-        if not self.params.where in ["com", "comecam", "terminadas"]:
-            print("\nsay where the letters will be searched")
-            return
+        if self.params.start is not None: where, letter = "comecam", self.params.start
+        if self.params.with_ is not None: where, letter = "contem", self.params.with_
+        if self.params.end is not None: where, letter = "terminadas", self.params.end
 
-        self.ou = "-1" if self.params.letter in ["o", "u"] and "com" == self.params.where else ""
-        url_search = f"https://www.dicio.com.br/palavras-{self.params.where}-{self.params.letter}-com-5-letras{self.ou}/"
+        match letter:
+            case "a": letters = ["a", "á", "â", "ã"]
+            case "o": letters = ["o", "ó", "ô", "õ"]
+            case "e": letters = ["e", "é", "ê"]
+            case "i": letters = ["i", "í"]
+            case "u": letters = ["u", "ú"]
+            case "c": letters = ["c", "ç"]
+            case _: letters = list(letter)
 
-        _words = BeautifulSoup(rq.get(url_search).text, "html.parser")
-        for p in _words.find(attrs= {"class": "card"}).find_all("p")[1:]:
+        for l in letters:
+            url_search = f"https://www.dicio.com.br/pesquisa-avancada/?tipo={where}&qword={l}&letras=5"
 
-            self.__words = normalize("NFD", p.text.strip()).encode("ascii", "ignore").decode("utf-8")
+            _words = BeautifulSoup(rq.get(url_search).text, "html.parser")
+            for p in _words.find(attrs= {"class": "card"}).find_all("p")[1:]:
 
-            for _ in range(0, len(self.__words), 5):
-                _word = self.__words[_: _ + 5]
-                can_print = True if self.__not_contains(_word) else False
+                self.__words = normalize("NFD", p.text.strip()).encode("ascii", "ignore").decode("utf-8")
+                for _ in range(0, len(self.__words), 5):
+                    _word = self.__words[_: _ + 5]
+                    can_print = True if self.__not_contains(_word) else False
 
-                if can_print and self.params.contains:
-                    can_print = True if self.__contains(_word) else False
-
-                if can_print and self.params.is_in:
-                    can_print = True if self.__is_in(_word) else False
-
-                if can_print and self.params.not_in:
-                    can_print = True if self.__not_in(_word) else False
-
-                if can_print:
-                    print(_word)
+                    if can_print and self.params.has: can_print = True if self.__contains(_word) else False
+                    if can_print and self.params.is_: can_print = True if self.__is_in(_word) else False
+                    if can_print and self.params.not_is: can_print = True if self.__not_is_in(_word) else False
+                    if can_print: print(_word)
 
     def __contains(self, word:str) -> bool:
-        for l in self.params.contains:
-            if l not in word:
-                return False
+        for l in self.params.has:
+            if l not in word: return False
         return True
 
     def __not_contains(self, word:str) -> bool:
-        for l in self.params.not_contains:
-            if l in word:
-                return False
+        for l in self.params.not_has:
+            if l in word: return False
         return True
 
     def __is_in(self, word:str) -> bool:
-        for param in self.params.is_in:
-            letter, position = param
-            if letter != word[int(position) - 1]:
-                return False
+        for letter, position in self.params.is_:
+            if letter != word[int(position) - 1]: return False
         return True
 
-    def __not_in(self, word:str) -> bool:
-        for param in self.params.not_in:
-            letter, position = param
-            if letter == word[int(position) - 1]:
-                return False
+    def __not_is_in(self, word:str) -> bool:
+        for letter, position in self.params.not_is:
+            if letter == word[int(position) - 1]: return False
         return True
 
 FindWord()
