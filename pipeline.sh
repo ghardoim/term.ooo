@@ -1,21 +1,25 @@
 #!/bin/bash
 
-echo "STAGE: clean before build"
-    rm -r term.exe
-
-echo "STAGE: create environment"
-    python -m venv .venv
-    source .venv/Scripts/activate
+if [ ! -d ".venv$1" ]; then
+    echo "STAGE: create environment"
+        python -m venv ".venv$1"
+        source ".venv$1/Scripts/activate"
+fi
 
 echo "STAGE: install dependencies"
-    pip install beautifulsoup4 pyinstaller requests
+    python.exe -m pip install --upgrade pip
 
-echo "STAGE: build"
-    pyinstaller -w -F findword.py -n "term" --console
+    if [ "$1" == "find" ]; then
+        pip install beautifulsoup4 pyinstaller requests
 
-echo "STAGE: deploy"
-    mv dist/term.exe ./
+    elif [ "$1" == "type" ]; then
+        pip install playwright
+        PLAYWRIGHT_BROWSERS_PATH=0
+        python -m playwright install chromium
+    fi
 
-echo "STAGE: clean after build"
+echo "STAGE: build deploy finish"
+    pyinstaller -c -F "src/$1word.py" -n "$1" $newarg
+    mv "dist/$1.exe" ./
     deactivate
-    rm -r build/ dist/ term.spec .venv/
+    rm -r build/ dist/ "$1.spec"
