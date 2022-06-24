@@ -1,9 +1,9 @@
 #!/bin/bash
 
-if [ ! -d ".venv$1" ]; then
+if [ ! -d ".venv$1term" ]; then
     echo "STAGE: create environment"
-        python -m venv ".venv$1"
-        source ".venv$1/Scripts/activate"
+        python -m venv ".venv$1term"
+        source ".venv$1term/Scripts/activate"
 fi
 
 echo "STAGE: install dependencies"
@@ -19,7 +19,7 @@ echo "STAGE: install dependencies"
     fi
 
 echo "STAGE: build deploy finish"
-    pyinstaller -c -F "src/$1word.py" -n "$1" $newarg
-    mv "dist/$1.exe" ./
+    pyinstaller -c -F "src/$1word.py" -n "$1term" $newarg
+    mv "dist/$1term.exe" ./
     deactivate
-    rm -r build/ dist/ "$1.spec"
+    rm -r build/ dist/ "$1term.spec"
