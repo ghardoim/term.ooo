@@ -19,12 +19,12 @@ class TypeWord:
         self.__browser.close()
         self.__play.stop()
 
-    def run(self, nterm: str = "") -> None:
+    def run(self, nterm: int = 0) -> None:
         self.page = self.__browser.new_page()
-        self.nterm = int(nterm) if nterm else ""
+        self.nterm = nterm
         self.nboard = 0
 
-        self.page.goto(f"{self.__url}/{self.nterm}")
+        self.page.goto(f"{self.__url}/{self.nterm if self.nterm else ''}")
         self.page.click("#help")
 
         self.__find_word()
