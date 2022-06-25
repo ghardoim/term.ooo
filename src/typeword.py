@@ -26,6 +26,7 @@ class TypeWord:
 
         self.page.goto(f"{self.__url}/{self.nterm if self.nterm else ''}")
         self.page.click("#help")
+
         self.__find_word()
 
     def __find_word(self) -> None:
@@ -50,7 +51,10 @@ class TypeWord:
             self.flags["--not-is-in"] += f" {self.__get_letter_position(last, 'wrong')}"
             self.flags["--not-is-in"] = ' '.join(set(self.flags["--not-is-in"].strip().split(' '))).strip()
 
-            if self.__is_all(last, "right"):
+            if self.__is_all(last, "wrong") and not self.flags["--has"]:
+                self.__try_with_initials_words(row)
+
+            elif self.__is_all(last, "right"):
                 self.nboard += 1
                 if (int(self.nboard) < int(self.nterm)): self.__find_word()
 
@@ -86,7 +90,8 @@ class TypeWord:
                 else: self.__try_with_initials_words(row)
             row += 1
 
-    def __is_all(self, _try: Locator, _type: str) -> bool: return 5 == _try.locator(f".letter.{_type}").count()
+    def __is_all(self, _try: Locator, _type: str) -> bool:
+        return 5 == _try.locator(f".letter.{_type}").count()
 
     def __try_with_this(self, nrow: int, word: str) -> None:
         _line = self.board.locator("[aria-label='palavra %i']" % nrow)
