@@ -1,10 +1,10 @@
 from utils import remove_accentuation
-from bs4 import BeautifulSoup
 import requests as rq
 import argparse
 
 class FindWord:
-    def __init__(self) -> None: self.__run()
+    def __init__(self) -> None:
+        self.__run()
 
     def words(letter:str="") -> list:
         _words = map(remove_accentuation, rq.get("https://raw.githubusercontent.com/fserb/pt-br/master/dicio").text.split("\n"))

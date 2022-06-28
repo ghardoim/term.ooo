@@ -10,10 +10,10 @@ echo "STAGE: install dependencies"
     python.exe -m pip install --upgrade pip
 
     if [ "$1" == "find" ]; then
-        pip install pyinstaller beautifulsoup4 requests
+        pip install pyinstaller requests
 
     elif [ "$1" == "type" ]; then
-        pip install playwright pyinstaller beautifulsoup4 requests
+        pip install playwright pyinstaller requests
         PLAYWRIGHT_BROWSERS_PATH=0
         python -m playwright install chromium
     fi
