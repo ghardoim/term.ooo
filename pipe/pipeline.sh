@@ -1,6 +1,7 @@
 #!/bin/bash
 
-if [ ! -d ".venv$1term" ]; then
+if [ ! -d ".venv$1term" ]
+then
     echo "STAGE: create environment"
         python -m venv ".venv$1term"
 fi
@@ -8,12 +9,11 @@ fi
 
 echo "STAGE: install dependencies"
     python.exe -m pip install --upgrade pip
+    pip install pyinstaller requests
 
-    if [ "$1" == "find" ]; then
-        pip install pyinstaller requests
-
-    elif [ "$1" == "type" ]; then
-        pip install playwright pyinstaller requests
+    if [ "$1" == "type" ]
+    then
+        pip install playwright
         PLAYWRIGHT_BROWSERS_PATH=0
         python -m playwright install chromium
     fi
