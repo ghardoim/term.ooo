@@ -3,6 +3,7 @@ from playwright.sync_api import sync_playwright
 from utils import remove_accentuation
 from datetime import datetime as dt
 from subprocess import run, PIPE
+from findword import FindWord
 from random import randint
 from sys import argv
 
@@ -10,7 +11,7 @@ class TypeWord:
     def __init__(self) -> None:
         self.__play = sync_playwright().start()
         self.__browser = self.__play.chromium.launch(headless=False)
-        self.__initials_words = ["extra", "vespa", "muito", "coisa", "negro", "bicho", "bunda", "jeito", "fizer", "quilo"]
+        self.__initials_words = FindWord.words()
         self.__already_tried = []
         self.__url = "https://term.ooo/"
 
@@ -26,7 +27,6 @@ class TypeWord:
 
         self.page.goto(f"{self.__url}/{self.nterm if self.nterm else ''}")
         self.page.click("#help")
-
         self.__find_word()
 
     def __find_word(self) -> None:
@@ -68,8 +68,8 @@ class TypeWord:
                     letters.nth(_).click()
                     letters.nth(_).type(word[_])
                 current.press("Enter")
-
                 self.words.remove(word)
+                self.page.wait_for_timeout(1500)
                 self.__already_tried.append(word)
 
             elif self.__is_all(self.board.locator("[aria-label='palavra %i']" % row), "empty"):
