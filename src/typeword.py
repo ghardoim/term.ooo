@@ -20,7 +20,7 @@ class TypeWord:
         self.__browser.close()
         self.__play.stop()
 
-    def run(self, nterm: int = 0) -> None:
+    def run(self, nterm:int=0) -> None:
         self.page = self.__browser.new_page()
         self.nterm = nterm
         self.nboard = 0
@@ -56,7 +56,7 @@ class TypeWord:
 
             elif self.__is_all(last, "right"):
                 self.nboard += 1
-                if (int(self.nboard) < int(self.nterm)): self.__find_word()
+                if (int(self.nboard) < int(self.nterm if self.nterm else 0)): self.__find_word()
 
             elif self.__is_all(last, "empty"):
                 row -= 1
