@@ -19,7 +19,7 @@ echo "STAGE: install dependencies"
     fi
 
 echo "STAGE: build deploy finish"
-    pyinstaller -c -F "src/$1word.py" -n "$1term"
+    pyinstaller -w -F "src/$1word.py" -n "$1term"
     mv "dist/$1term.exe" ./
     deactivate
     rm -r build/ dist/ "$1term.spec"
