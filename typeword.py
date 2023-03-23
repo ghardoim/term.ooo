@@ -27,7 +27,7 @@ class TypeWord:
         self._flags["--is-in"] += " " + self._get_guess_position(row, yes)
         self._flags["--is-in"] = self._clear_isin(self._flags["--is-in"])
 
-        self._flags["--not-is-in"] += f" {self._get_guess_position(row, maybe)}{self._get_guess_position(row, no)}"
+        self._flags["--not-is-in"] += f" {self._get_guess_position(row, maybe)} {self._get_guess_position(row, no)}"
         self._flags["--not-is-in"] = self._clear_isin(self._flags["--not-is-in"])
 
     def _get_new_words(self, lang:str) -> list:
