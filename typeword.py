@@ -12,29 +12,29 @@ class TypeWord:
         self._browser.maximize_window()
         self._browser.get(url)
 
-    def _guess(self, nguess:int, row:WebElement, newwords:list, lang:str) -> None:
-        if 0 == nguess: self._try_this(row, FindWord.words(language=lang))
-        else: self._try_this(row, newwords)
+    def _guess(self, nguess:int, row:WebElement, flags:dict, lang:str, len_word:int=5) -> None:
+        if 0 == nguess: self._try_this(row, FindWord.words(language=lang, nletters=len_word))
+        else: self._try_this(row, self._get_new_words(lang, flags, len_word))
         sleep(1)
 
-    def _analyze_guess(self, row:WebElement, yes:str, no:str, maybe:str) -> None:
-        self._flags["--has"] += f"{self._get_guesses(row, yes)}{self._get_guesses(row, maybe)}"
-        self._flags["--has"] = "".join(set(self._flags["--has"]))
+    def _analyze_guess(self, row:WebElement, flags:dict, yes:str, no:str, maybe:str) -> dict:
 
-        self._flags["--not-has"] += self._get_guesses(row, no)
-        self._flags["--not-has"] = "".join(set(self._flags["--not-has"]).difference(self._flags["--has"]))
+        flags["--not-is-in"] += f" {self._get_guess_position(row, maybe)} {self._get_guess_position(row, no)}"
+        flags["--has"] += f"{self._get_guesses(row, yes)}{self._get_guesses(row, maybe)}"
+        flags["--not-has"] = "".join(set(flags["--not-has"]).difference(flags["--has"]))
+        flags["--not-is-in"] = self._clear_isin(flags["--not-is-in"])
+        flags["--is-in"] += " " + self._get_guess_position(row, yes)
+        flags["--is-in"] = self._clear_isin(flags["--is-in"])
+        flags["--not-has"] += self._get_guesses(row, no)
+        flags["--has"] = "".join(set(flags["--has"]))
+        return flags
 
-        self._flags["--is-in"] += " " + self._get_guess_position(row, yes)
-        self._flags["--is-in"] = self._clear_isin(self._flags["--is-in"])
-
-        self._flags["--not-is-in"] += f" {self._get_guess_position(row, maybe)} {self._get_guess_position(row, no)}"
-        self._flags["--not-is-in"] = self._clear_isin(self._flags["--not-is-in"])
-
-    def _get_new_words(self, lang:str) -> list:
-        cmd_find = f"python findword.py --language {lang} "
-        cmd_find += " ".join([f"{key} {value}" for key, value in self._flags.items() if value]).lower()
+    def _get_new_words(self, lang:str, flags:dict, amout_letters:int=5) -> list:
+        cmd_find = f"python findword.py --language {lang} --letters-amount {amout_letters} "
+        cmd_find += " ".join([f"{key} {value}" for key, value in flags.items() if value]).lower()
         return run(cmd_find.split(" "), stdout=PIPE, text=True, shell=True).stdout.strip().split("\n")
 
     def __del__(self) -> None: self._browser.close()
     def _is_all(self, row:WebElement, kind:str) -> bool: return 5 == len(self._get_all(row, kind))
     def _clear_isin(self, flag:str) -> str: return " ".join(sorted(filter(lambda l: l, set(flag.split(" ")))))
+    def _get_guesses(self, row:WebElement, kind:str) -> str: return "".join([l.text for l in self._get_all(row, kind)])
