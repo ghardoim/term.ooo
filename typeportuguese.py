@@ -13,27 +13,22 @@ class Portuguese(TypeWord):
         self._browser.find_element(By.TAG_NAME, "wc-modal").click()
 
         for b in range(int(nwords) if nwords else 1):
-            self._flags, new_words = {"--has": "", "--not-has": "", "--is-in": "", "--not-is-in": ""}, []
+            flags = {"--has": "", "--not-has": "", "--is-in": "", "--not-is-in": ""}
             for r, row in enumerate(self._browser.find_element(By.ID, f"board{b}").shadow_root.find_elements(By.CSS_SELECTOR, "[termo-row]")):
-                
                 if self._is_all(row, "empty"):
                     while True:
-
-                        self._guess(r, row, new_words, "pt-br")
+                        self._guess(r, row, flags, "pt-br")
                         if self._browser.find_element(By.TAG_NAME, "wc-notify").shadow_root.find_element(By.ID, "msg").is_displayed():
                             [ cell.send_keys(Keys.BACKSPACE) for cell in self._get_all(row, "letter") ]
                         else: break
 
                 while 0 != len(self._get_all(row, "empty")): sleep(1)
-                self._analyze_guess(row, "right", "wrong", "place")
-
-                if not self._is_all(row, "right"): new_words = self._get_new_words("pt-br")
-                elif self._is_all(row, "right") or self._browser.find_element(By.TAG_NAME, "wc-notify").is_enabled(): break
-
+                flags = self._analyze_guess(row, flags, "right", "wrong", "place")
+                if self._is_all(row, "right") or self._browser.find_element(By.TAG_NAME, "wc-notify").is_enabled(): break
             if self._browser.find_element(By.TAG_NAME, "wc-modal").is_displayed(): break
 
     def _get_all(self, row:WebElement, kind:str) -> list: return row.shadow_root.find_elements(By.CLASS_NAME, kind)
-    def _get_guesses(self, row:WebElement, kind:str) -> str: return fw.remove_accent("".join([l.text for l in self._get_all(row, kind)]))
+    def _get_guesses(self, row:WebElement, kind:str) -> str: return fw.remove_accent(super()._get_guesses(row, kind))
 
     def _get_guess_position(self, row:WebElement, kind:str) -> str:
         return fw.remove_accent("".join([f" {s.text}{int(s.get_attribute('termo-pos')) + 1}" for _, s in enumerate(self._get_all(row, kind))]))
