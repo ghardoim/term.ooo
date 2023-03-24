@@ -21,11 +21,11 @@ class TypeWord:
 
         flags["--not-is-in"] += f" {self._get_guess_position(row, maybe)} {self._get_guess_position(row, no)}"
         flags["--has"] += f"{self._get_guesses(row, yes)}{self._get_guesses(row, maybe)}"
+        flags["--is-in"] += " " + self._get_guess_position(row, yes)
+        flags["--not-has"] += self._get_guesses(row, no)
         flags["--not-has"] = "".join(set(flags["--not-has"]).difference(flags["--has"]))
         flags["--not-is-in"] = self._clear_isin(flags["--not-is-in"])
-        flags["--is-in"] += " " + self._get_guess_position(row, yes)
         flags["--is-in"] = self._clear_isin(flags["--is-in"])
-        flags["--not-has"] += self._get_guesses(row, no)
         flags["--has"] = "".join(set(flags["--has"]))
         return flags
 
