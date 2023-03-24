@@ -24,7 +24,7 @@ class Portuguese(TypeWord):
 
                 while 0 != len(self._get_all(row, "empty")): sleep(1)
                 flags = self._analyze_guess(row, flags, "right", "wrong", "place")
-                if self._is_all(row, "right") or self._browser.find_element(By.TAG_NAME, "wc-notify").is_enabled(): break
+                if self._is_all(row, "right"): break
             if self._browser.find_element(By.TAG_NAME, "wc-modal").is_displayed(): break
 
     def _get_all(self, row:WebElement, kind:str) -> list: return row.shadow_root.find_elements(By.CLASS_NAME, kind)
