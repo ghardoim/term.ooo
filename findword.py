@@ -14,7 +14,7 @@ class FindWord:
 
     def __run(self) -> None:
         parser = ArgumentParser(prog="find words filtered out by some criterias", usage="%(prog)s")
-        parser.add_argument("--not-has", type=str, required=True)
+        parser.add_argument("--not-has", type=str, default="")
         parser.add_argument("--has", type=str)
 
         start = parser.add_mutually_exclusive_group()
@@ -36,21 +36,21 @@ class FindWord:
         self.params = parser.parse_args()
 
         for _word in FindWord.words(self.params.letters_amount, self.params.language):
-            can_print = True if self.__not_has(_word) else False
+            can_print = self.__not_has(_word)
 
-            if can_print and self.params.not_starts_with: can_print = True if not self.__starts_with(_word) else False
-            if can_print and self.params.starts_with: can_print = True if self.__starts_with(_word) else False
+            if can_print and self.params.not_starts_with: can_print = not self.__starts_with(_word)
+            if can_print and self.params.starts_with: can_print = self.__starts_with(_word)
 
-            if can_print and self.params.not_ends_with: can_print = True if not self.__ends_with(_word) else False
-            if can_print and self.params.ends_with: can_print = True if self.__ends_with(_word) else False
+            if can_print and self.params.not_ends_with: can_print = not self.__ends_with(_word)
+            if can_print and self.params.ends_with: can_print = self.__ends_with(_word)
 
-            if can_print and self.params.not_contains: can_print = True if self.__not_contains(_word) else False
-            if can_print and self.params.contains: can_print = True if self.__contains(_word) else False
+            if can_print and self.params.not_contains: can_print = self.__not_contains(_word)
+            if can_print and self.params.contains: can_print = self.__contains(_word)
 
-            if can_print and self.params.not_is_in: can_print = True if self.__not_is_in(_word) else False
-            if can_print and self.params.is_in: can_print = True if self.__is_in(_word) else False
+            if can_print and self.params.not_is_in: can_print = self.__not_is_in(_word)
+            if can_print and self.params.is_in: can_print = self.__is_in(_word)
 
-            if can_print and self.params.has: can_print = True if self.__has(_word) else False
+            if can_print and self.params.has: can_print = self.__has(_word)
             if can_print: print(_word)
 
     def __contains(self, word:str) -> bool: return self.params.contains in word
