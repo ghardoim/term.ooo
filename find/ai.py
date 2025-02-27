@@ -1,20 +1,57 @@
+from langchain.output_parsers import PydanticOutputParser
+from langchain_google_genai import GoogleGenerativeAI
+from langchain_core.document_loaders import BaseLoader
+from langchain_core.documents import Document
+from langchain.prompts import PromptTemplate
+from pydantic import BaseModel, Field
 import google.generativeai as genai
+from find.api import APIFinder
+from typing import Iterator
+import requests as rq
+from os import getenv
+
+API_KEY = getenv("GOOGLE_API_KEY")
+CONTEXT = """
+    You are playing a game to guess the word of the day.
+
+    Use this list of words as consult base to your guess:
+        {WORDS}
+    *YOUR GUESS MUST BE ONE OF THE PREVIOUS WORDS*
+"""
+
+FIRST_GUESS = CONTEXT + """
+    The word must mach with the following instructions:
+        - the letters must not repeat.
+
+    Your answer must be in {LANGUAGE}
+    {FORMAT}
+"""
+
+GUESS = CONTEXT + """
+    You are playing a game to guess the word of the day.
+    The word must mach with the following instructions:
+
+        - must have the following letters: {HAS}
+        - must not contains the following letters: {NOT_HAS}
+
+    Use these sequences. e.g: G1 letter G in the first position, to evaluate if the word must have or must not have the letters located in that position.
+        - must be: '{IS_IN}'
+        - must not be: '{NOT_IS_IN}'
+
+    Your answer must be in {LANGUAGE}
+    {FORMAT}
+"""
 
 class AIFinder:
     def __init__(self):
-        genai.configure(api_key="")
+        genai.configure(api_key=API_KEY)
         self.model = genai.GenerativeModel("gemini-pro")
+        self.llm = GoogleGenerativeAI(model="gemini-2.0-flash", api_key=API_KEY, temperature=0)
+        
+        self.parser = PydanticOutputParser(pydantic_object=Guess)
+        self.fmt = {"partial_variables":{"FORMAT":self.parser.get_format_instructions()}}
 
     def hit(self, filters:dict={}, language:str="", word_length:str="five") -> str:
-        """
-        This function is used to interact with the AI model to find the word of the day with five letters.
-        The filters parameter is used to pass the tips to the AI model to filter the words.
-        The filters parameter must be a dictionary with the following keys:
-        - HAS | NOT-HAS: string with letters that the word must have or not.
-        - IS-IN | NOT-IS-IN: sequences separated by space like A1, where A is a letter and 1 is the position.
-
-        """
-
         return self.model.start_chat(history=[{"role": "user", "parts": f"""
 
             You are like a dictionary, you know every word of the {language} vocabulary.
@@ -38,3 +75,19 @@ class AIFinder:
             Let's start!
 
         """}]).send_message("hit! " + ", ".join([f"{key}: '{value}'" for key, value in filters.items() if value])).text
+
+    def guess(self, filters:dict={}, prompt:str="") -> str:
+        guess = PromptTemplate(template=prompt, input_variables=["WORDS", "LANGUAGE"] + list(filters.keys()), **self.fmt)
+
+        return (guess | self.llm | self.parser).invoke({**filters,
+            "WORDS": [w.page_content for w in HTTPRequestLoader("en-us", filters["LENGTH"]).load()]}).word
+
+class HTTPRequestLoader(BaseLoader):
+    def __init__(self, language:str="pt-br", length:int=5) -> None:
+        self.words = APIFinder(LANGUAGE=language, WORD_LENGTH=length).words()
+
+    def lazy_load(self) -> Iterator[Document]:
+        for word in self.words: yield Document(page_content=word)
+
+class Guess(BaseModel):
+    word:str = Field(description="Word which will be used as guess.")
