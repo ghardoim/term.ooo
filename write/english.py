@@ -4,11 +4,11 @@ from selenium.webdriver.common.by import By
 from write.writeword import WriteWord
 
 class English(WriteWord):
-    def __init__(self, child:list) -> None:
+    def __init__(self, child:list=[]) -> None:
 
         if not child:
             super().__init__("https://www.nytimes.com/games/wordle/index.html", [(By.XPATH, "//button[@{}]".format(btn))
-                for btn in ["data-testid='Accept all-btn'", "data-testid='Play'", "aria-label='Close'"]])
+                for btn in ["class='purr-blocker-card__button'", "data-testid='Accept all-btn'", "data-testid='Play'", "aria-label='Close'"]])
 
             self.rows = self.find_elements((By.XPATH, "//div[contains(@aria-label, 'Row ')]"))
             self.status = ["correct", "absent", "present"]

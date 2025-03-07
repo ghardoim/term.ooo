@@ -2,14 +2,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver import Edge
+from selenium.webdriver import Safari
 from unicodedata import normalize
 from argparse import Namespace
 from find.api import APIFinder
 from random import choice
 from time import sleep
 
-class WriteWord(Edge):
+class WriteWord(Safari):
     def __init__(self, url:str, waits_elements:list[tuple]) -> None:
         super().__init__()
         self.get(url)
