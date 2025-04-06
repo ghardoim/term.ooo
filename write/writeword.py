@@ -10,25 +10,19 @@ from random import choice
 from time import sleep
 
 class WriteWord(Safari):
-    def __init__(self, url:str, waits_elements:list[tuple]) -> None:
+    def __init__(self, url:str, waits_elements:list[tuple], language:str="pt-br", length:int=5) -> None:
         super().__init__()
-        self.get(url)
 
+        self.api = APIFinder(LANGUAGE=language, WORD_LENGTH=length)
         self.waits = WebDriverWait(self, 10)
         self.maximize_window()
+        self.get(url)
 
-        for btn in waits_elements:
-            self.waits.until(EC.element_to_be_clickable(btn)).click()
-
-        self.api = APIFinder()
-        self.flags = {
-            "HAS": "",
-            "IS-IN": "",
-            "NOT-HAS": "",
-            "NOT-IS-IN": ""
-        }
+        for btn in waits_elements: self.waits.until(EC.element_to_be_clickable(btn)).click()
 
     def _run(self) -> None:
+        self.flags = { "HAS": "", "IS-IN": "", "NOT-HAS": "", "NOT-IS-IN": "" }
+
         for row in self.rows:
             if self.is_all(row, self.not_exist):
 
@@ -60,16 +54,12 @@ class WriteWord(Safari):
 
         return flags
     
-    def clear_isin(self, flag:str) -> str:
-        return " ".join(sorted(filter(lambda l: l, set(flag.split(" ")))))
-
-    def is_all(self, row:WebElement, status:str, word_length:int=5) -> bool:
-        return word_length == len(self._get_all(row, status))
+    def clear_isin(self, flag:str) -> str: return " ".join(sorted(filter(lambda l: l, set(flag.split(" ")))))
+    def is_all(self, row:WebElement, status:str, word_length:int=5) -> bool: return word_length == len(self._get_all(row, status))
 
     def get_guesses(self, row:WebElement, status:str) -> str:
-        return normalize("NFD", "".join([l.text for l in self._get_all(row, status)]).lower().strip()
-            ).encode("ascii", "ignore").decode("utf-8")
+        return normalize("NFD", "".join([l.text for l in self._get_all(row, status)]).lower().strip()).encode("ascii", "ignore").decode("utf-8")
 
     def __del__(self) -> None:
         self.close()
-        self.quit()    
+        self.quit()

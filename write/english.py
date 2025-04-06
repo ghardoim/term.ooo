@@ -1,3 +1,4 @@
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
@@ -7,29 +8,25 @@ class English(WriteWord):
     def __init__(self, child:list=[]) -> None:
 
         if not child:
-            super().__init__("https://www.nytimes.com/games/wordle/index.html", [(By.XPATH, "//button[@{}]".format(btn))
-                for btn in ["class='purr-blocker-card__button'", "data-testid='Accept all-btn'", "data-testid='Play'", "aria-label='Close'"]])
+            super().__init__("https://www.nytimes.com/games/wordle/index.html",
+                [(By.XPATH, "//button[contains(text(), '{}')]".format(btn)) for btn in ["Accept all", "Continue", "Play"]], "en-us")
 
-            self.rows = self.find_elements((By.XPATH, "//div[contains(@aria-label, 'Row ')]"))
+            self.waits.until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Close']"))).click()
+            self.rows = self.find_elements(By.XPATH, "//main/div[1]/div/div")
             self.status = ["correct", "absent", "present"]
             self.language = self.__class__.__name__
-            self.not_exist = "tbd"
+            self.not_exist = "empty"
 
         else: super().__init__(*child)
         self.actions = ActionChains(self)
 
-    def run(self) -> None:
-        super()._run()
-
-    def _write(self, row:WebElement, key:str) -> None:
-        self.actions.send_keys_to_element(row, key).perform()
+    def run(self) -> None: super()._run()
+    def _write(self, row:WebElement, key:str) -> None: self.actions.send_keys_to_element(row, key).perform()
+    def _get_all(self, row:WebElement, status:str) -> list: return row.find_elements(By.XPATH, ".//div[@data-state='{}']".format(status))
 
     def _get_guess_position(self, row:WebElement, status:str) -> str:
         return "".join([f" {s.text}{s.get_attribute('aria-label')[0]}"
             for s in row.find_elements(By.XPATH, "//div[@data-state='{}']".format(status))])
-
-    def _get_all(self, row:WebElement, status:str) -> list:
-        return row.find_elements(By.XPATH, ".//div[@data-state='{}']".format(status))
 
 class Phrase(English):
     def __init__(self, word_length:int=5) -> None:
@@ -45,11 +42,9 @@ class Phrase(English):
         (tbd := self.rows[0].find_elements(By.XPATH, ".//div[not(contains(@class, ' block'))]"))
 
     def _get_guess_position(self, word:WebElement, status:str) -> str:
-        return "".join([f" {key.text}{position + 1}"
-            for position, key in enumerate(word.find_elements(By.CLASS_NAME, status))])
+        return "".join([f" {key.text}{position + 1}" for position, key in enumerate(word.find_elements(By.CLASS_NAME, status))])
 
     def _get_all(self, row:WebElement, status:str) -> list:
         return row.find_elements(By.XPATH, ".//div[contains(@class, '{}')]".format(status))
 
-if "__main__" == __name__:
-    English().run()
+if "__main__" == __name__: English().run()
