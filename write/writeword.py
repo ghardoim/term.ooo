@@ -4,16 +4,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import Safari
 from unicodedata import normalize
-from argparse import Namespace
 from find.api import APIFinder
 from random import choice
 from time import sleep
 
 class WriteWord(Safari):
-    def __init__(self, url:str, waits_elements:list[tuple], language:str="pt-br", length:int=5) -> None:
+    def __init__(self, url:str, waits_elements:list[tuple], language:str="pt-br", word_length:int=5) -> None:
         super().__init__()
 
-        self.api = APIFinder(LANGUAGE=language, WORD_LENGTH=length)
+        self.api = APIFinder(lang=language, length=word_length)
         self.waits = WebDriverWait(self, 10)
         self.maximize_window()
         self.get(url)
@@ -37,8 +36,8 @@ class WriteWord(Safari):
             if self.is_all(row, self.status[0]): break
             self.flags = self.analyze_guess(row, self.flags, *self.status)
 
-            self.api.kwargs = Namespace(**{**{key.replace("-", "_"): value for key, value in self.flags.items()},
-                "WORD_LENGTH": self.api.kwargs.WORD_LENGTH, "LANGUAGE": self.api.kwargs.LANGUAGE})
+            for key, value in self.flags.items():
+                self.api.kwargs.__dict__[key.replace("-", "_")] = value
 
     def analyze_guess(self, row:WebElement, flags:dict, yes:str, no:str, maybe:str) -> dict:
 

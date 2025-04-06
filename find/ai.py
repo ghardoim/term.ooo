@@ -83,8 +83,8 @@ class AIFinder:
             "WORDS": [w.page_content for w in HTTPRequestLoader("en-us", filters["LENGTH"]).load()]}).word
 
 class HTTPRequestLoader(BaseLoader):
-    def __init__(self, language:str="pt-br", length:int=5) -> None:
-        self.words = APIFinder(LANGUAGE=language, WORD_LENGTH=length).words()
+    def __init__(self, language:str="pt-br", word_length:int=5) -> None:
+        self.words = APIFinder(lang=language, length=word_length).words()
 
     def lazy_load(self) -> Iterator[Document]:
         for word in self.words: yield Document(page_content=word)
