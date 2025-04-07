@@ -1,36 +1,38 @@
 from argparse import ArgumentParser, Namespace
-from unicodedata import normalize
 import requests as rq
 
 class APIFinder:
     def __init__(self, length:int=5, lang:str="pt-br") -> None:
-        self.kwargs = Namespace(WORD_LENGTH=length, LANGUAGE=lang, HAS=None, NOT_HAS=None, IS_IN=None, NOT_IS_IN=None, REPEATED=None)
+        self.kwargs = Namespace(WORD_LENGTH=length, LANGUAGE=lang, REPEATED=None, SEQUENCE=None,
+            HAS=None, NOT_HAS=None, IS_IN=None, NOT_IS_IN=None)
 
-    def words(self) -> list:
-        url = {
-            "pt-br": ("https://raw.githubusercontent.com/fserb/pt-br/master/dicio"),
-            "en-us": ("https://www.mit.edu/~ecprice/wordlist.10000")
-        }[self.kwargs.LANGUAGE]
-
-        return [ normalize("NFD", word) for word in rq.get(url).text.split("\n") if self.kwargs.WORD_LENGTH == len(word) ]
+        url, splitby = {
+            "pt-br": ("fserb/pt-br/master/dicio", "\n"),
+            "en-us": ("dwyl/english-words/refs/heads/master/words_alpha.txt", "\r\n")
+        }[lang]
+        self.__words = [ word for word in rq.get("https://raw.githubusercontent.com/" + url).text.split(splitby) ]
 
     def filter(self) -> list:
-        verifications = [ (self.__has, self.kwargs.HAS), (self.__not_has, self.kwargs.NOT_HAS),
-            (self.__is_in, self.kwargs.IS_IN), (self.__not_is_in, self.kwargs.NOT_IS_IN), (self.__is_repeated, self.kwargs.REPEATED)]
-
-        return [ w for w in self.words() if all([ verify(w) for verify, args in verifications if args]) ]
+        verifications = [
+            (self.__has, self.kwargs.HAS), (self.__not_has, self.kwargs.NOT_HAS),
+            (self.__is_in, self.kwargs.IS_IN), (self.__not_is_in, self.kwargs.NOT_IS_IN),
+            (self.__is_repeated, self.kwargs.REPEATED), (self.__has_sequence, self.kwargs.SEQUENCE)
+        ]
+        _words = [ w for w in self.__words if self.kwargs.WORD_LENGTH == len(w) ]
+        return [ w for w in _words if all([ verify(w) for verify, args in verifications if args]) ]
 
     def cmd_run(self) -> None:
 
         (parser := ArgumentParser()).add_argument("--LANGUAGE", type=str, default="pt-br")
         parser.add_argument("--WORD-LENGTH", type=int, default=5)
         parser.add_argument("--NOT-HAS", type=str, default="")
-        parser.add_argument("--HAS", type=str, default="a")
+        parser.add_argument("--HAS", type=str, default="")
 
         parser.add_argument("--NOT-IS-IN", type=str, nargs="+")
         parser.add_argument("--IS-IN", type=str, nargs="+")
 
         parser.add_argument("--REPEATED", type=str, nargs="+")
+        parser.add_argument("--SEQUENCE", type=str, default="")
 
         self.kwargs = parser.parse_args()
         print(self.filter())
@@ -49,6 +51,9 @@ class APIFinder:
 
     def __is_repeated(self, word:str) -> bool:
         return all([word.count(key) == int(value) for value, key in self._split(self.kwargs.REPEATED)])
+    
+    def __has_sequence(self, word:str) -> bool:
+        return self.kwargs.SEQUENCE in word
 
     def _split(self, parameters:str|list) -> list:
         return parameters if isinstance(parameters, list) else parameters.split(" ")
