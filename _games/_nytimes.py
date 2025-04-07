@@ -12,3 +12,7 @@ class Puzzle(Safari):
 
         for button in ["//button[contains(text(), '{}')]".format(btn) for btn in ["Reject all", "Continue", "Play"]]:
             self.execute_script("arguments[0].click()", self.find_element(By.XPATH, button))
+
+    def end(self) -> None:
+        self.close()
+        self.quit()
